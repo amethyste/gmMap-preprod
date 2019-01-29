@@ -1,0 +1,28 @@
+/* GENERAL
+============================================================================= */
+* { padding: 0; margin: 0; }
+body { background-color: #eee; }
+
+/* Colors */
+.turquoise { color: #23b0a3; }
+
+/* Waiting message
+============================================================================= */
+.jumbotron {
+  text-align: center;
+  margin-top: 50vh; /* poussé de la moitié de hauteur de viewport */
+  -ms-transform: translateY(-50%); /* IE 9 */
+  -webkit-transform: translateY(-50%); /* Chrome, Safari, Opera */
+  transform: translateY(-50%);
+}
+
+.jumbotron img { max-width: 100px; }
+.jumbotron h2 {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 700;
+  color: #333;
+  text-transform: uppercase;
+  position: relative;
+  bottom: 10px;
+}
+.jumbotron p { font-family: 'Roboto', sans-serif; font-weight: 400; color: #666; font-size: 0.9rem; margin-top: 15px; }
