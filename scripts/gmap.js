@@ -69,6 +69,11 @@
 			 searchBox.addListener('places_changed', function() {
           var places = searchBox.getPlaces();
 
+					/* reinit results */
+					var resultsWrapper = document.getElementById('results');
+					resultsWrapper.innerHTML = "";
+					searchMarkers = [];
+
           if (places.length == 0) {
             return;
           }
@@ -94,8 +99,6 @@
 						}
 
 						for (var searchMarker of searchMarkers) {
-							var resultsWrapper = document.querySelector('#results');
-
 							var result = document.createElement('p');
 							result.setAttribute("class", "result-label");
 							result.setAttribute("data-lat", searchMarker.getPosition().lat());
