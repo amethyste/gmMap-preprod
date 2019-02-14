@@ -93,6 +93,12 @@
 				 }
 			 });
 
+			 google.maps.event.addDomListener(inputSearchbar, 'focus', function(event) {
+				 inputSearchbar.value = "";
+				 searchMarkersByGmap = [];
+				 combineFilters(searchMarkersByFilters, searchMarkersByGmap);
+			 });
+
 			 google.maps.event.addListener(autocomplete, 'place_changed', function(event) {
           var place = autocomplete.getPlace();
 					searchMarkersByGmap = [];
