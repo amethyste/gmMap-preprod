@@ -50,6 +50,10 @@
       </style>
 
 			<style type="text/css">
+        html {
+          overflow: hidden;
+        }
+
         .clear {
           clear: both;
         }
@@ -110,6 +114,9 @@
           line-height: 45px;
           height: 45px;
           display: block;
+          background-color: whitesmoke;
+          border: 1px solid #ccc;
+          padding: 0 15px;
         }
 
         .filter-label {
@@ -141,6 +148,7 @@
           top: 10px;
           left: 10px;
           cursor: pointer;
+          width: 17px;
         }
 
 				.color-box {
@@ -157,11 +165,41 @@
 				.color-box.orange { background-color: #db5810; }
 				.color-box.purple { background-color: #8e29c4; }
 
-        [id="results"] p {
+        .results-number {
+          font-size: 0.7rem;
+          font-weight: bolder;
+        }
+
+        [id="results"] {
+          height: -moz-calc(100% - 340px);
+          height: -webkit-calc(100% - 340px);
+          height: calc(100% - 340px);
+          overflow-y: scroll;
+          position: absolute;
+          left: 25px;
+          right: 25px;
+          bottom: 25px;
+        }
+
+        [id="results"] .result {
           background: #f7f7f7;
           padding: 15px;
           margin: 10px 0;
           cursor: pointer;
+        }
+
+        [id="results"] .circle {
+          width: 10px;
+          height: 10px;
+          border-radius: 5px;
+          display: inline-block;
+          margin-left: 5px;
+          position: relative;
+          top: 1px;
+        }
+
+        [id="results"] .result-label {
+          margin: 0;
         }
 
 				@media screen and (max-width: 640px) {
@@ -181,6 +219,11 @@
           <img src="/svgs/filter.svg" alt="filter" class="icon-filter">
         </div>
 				<form>
+          <div id="searchbar">
+            <h4>Rechercher une station</h4>
+            <input type="search" name="search" placeholder="Ville ou code postal"/>
+          </div>
+
           <div id="form-filters">
             <h4>Types de station</h4>
   					<label class="filter-label" data-value="#5da90f">
@@ -203,12 +246,8 @@
             <div class="clear"></div>
           </div>
 
-          <div id="searchbar">
-            <h4>Rechercher une station</h4>
-            <input type="search" name="search" placeholder="Ville ou code postal"/>
-
-            <div id="results">
-            </div>
+          <div class="results-number"></div>
+          <div id="results">
           </div>
 
           <div class="clear"></div>
@@ -243,18 +282,28 @@
          /* Sorting */
          var markers = new Array();
          var searchMarkers = new Array();
+         var searchMarkersByFilters = new Array();
+         var searchMarkersByGmap = new Array();
          var infoWindows = new Array();
 				 var filters = new Array();
 
 				 function filterMap(value) {
 					 if(filters.length) {
+             searchMarkersByFilters = [];
+
 						 _.forEach(markers, function(m) {
 							 const isSelected = _.find(filters, function(f) { return m.icon.fillColor === f });
 							 if(!isSelected) {
 								 m.setVisible(false);
-							 }
+							 } else {
+                 searchMarkersByFilters.push(m);
+               }
 						 });
-					 }
+					 } else {
+             searchMarkersByFilters = markers;
+           }
+
+           combineFilters(searchMarkersByFilters, searchMarkersByGmap);
 				 }
 
 				 function resetFilters(markers) {
@@ -303,9 +352,46 @@
 
            infoWindow.open();
          });
+
+
+         /* ================================= */
+         /* =========== Functions =========== */
+         /* ================================= */
+         var combineFilters = function(searchMarkersByFilters, searchMarkersByGmap) {
+           /* reinit results */
+           var resultsWrapper = document.getElementById('results');
+           resultsWrapper.innerHTML = "";
+
+           var searchMarkers = _.intersection(searchMarkersByFilters, searchMarkersByGmap);
+           if(searchMarkersByFilters.length === 0 || searchMarkersByGmap.length === 0) {
+             searchMarkers = _.union(searchMarkersByFilters, searchMarkersByGmap);
+           }
+
+           var numberResults = document.querySelector('.results-number');
+           numberResults.innerText = searchMarkers.length + " résultats";
+
+           for (var searchMarker of searchMarkers) {
+             var result = document.createElement('div');
+             result.setAttribute("class", "result");
+
+             var label = document.createElement('p');
+             label.setAttribute("class", "result-label");
+             label.setAttribute("data-lat", searchMarker.getPosition().lat());
+             label.setAttribute("data-lng", searchMarker.getPosition().lng());
+             label.innerHTML = searchMarker.title;
+
+             var circle = document.createElement('span');
+             circle.setAttribute("class", "circle");
+             circle.setAttribute("style", "background-color: " + searchMarker.icon.fillColor);
+
+             label.appendChild(circle);
+             result.appendChild(label);
+             resultsWrapper.appendChild(result);
+           }
+         }
 		  </script>
 
       <script src="gmap.js"></script>
-      <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC9t7r5MTrXgbikEksL3e6X0Yy5q2T-QxU&amp;v=3.31&amp;language=fr&amp;libraries=geometry,places&amp;callback=createMap"></script>
+      <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCAMtBR72QCj0Uidl-x5PKnYim8jsDNqRE&amp;v=3.31&amp;language=fr&amp;libraries=geometry,places&amp;callback=createMap"></script>
    </body>
 </html>

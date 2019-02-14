@@ -57,79 +57,79 @@
 			 map = new google.maps.Map(document.getElementById('map'), opts);
 			 map.panBy(-155, 0);
 
-				// Create the search box and link it to the UI element.
 			 var inputSearchbar = document.querySelector('#searchbar input');
-			 var searchBox = new google.maps.places.SearchBox(inputSearchbar);
+			 var options = {
+			    types: ['(cities)'],
+			    componentRestrictions: {country: 'fr'}
+			 };
 
-			 // Bias the SearchBox results towards current map's viewport.
-			 map.addListener('bounds_changed', function() {
-				 searchBox.setBounds(map.getBounds());
+			 var autocomplete = new google.maps.places.Autocomplete(inputSearchbar, options);
+			 autocomplete.bindTo('bounds', map);
+
+			 google.maps.event.addDomListener(inputSearchbar, 'keydown', function(event) {
+			 	 if (event.keyCode === 13) {
+					 event.preventDefault();
+				 }
 			 });
 
-			 searchBox.addListener('places_changed', function() {
-          var places = searchBox.getPlaces();
+			 google.maps.event.addListener(autocomplete, 'place_changed', function(event) {
+          var place = autocomplete.getPlace();
+					searchMarkersByGmap = [];
 
-					/* reinit results */
-					var resultsWrapper = document.getElementById('results');
-					resultsWrapper.innerHTML = "";
-					searchMarkers = [];
+          if (!place.formatted_address) {
+						autocompleteService = new google.maps.places.AutocompleteService();
+						autocompleteService.getPlacePredictions(
+								{
+										'input': place.name,
+										'offset': place.name.length,
+										'componentRestrictions': {'country': 'fr'},
+										'types': ['(cities)']
+								},
+								function listentoresult(list, status) {
+									var firstResult = list[0];
+									inputSearchbar.value = firstResult.description;
 
-          if (places.length == 0) {
-            return;
+									var request = {
+									  placeId: firstResult.place_id,
+									  fields: ['geometry']
+									};
+
+									var service = new google.maps.places.PlacesService(map);
+									service.getDetails(request, function(place, status){
+										var bounds = new google.maps.LatLngBounds();
+
+										for (var marker of markers) {
+											var targetLat = marker.getPosition().lat();
+											var targetLng = marker.getPosition().lng();
+											var centerLat = place.geometry.location.lat();
+											var centerLng = place.geometry.location.lng();
+
+											var targetLoc = new google.maps.LatLng(targetLat,targetLng);
+											var centerLoc = new google.maps.LatLng(centerLat, centerLng);
+
+											var radius = 20;
+											var distanceInkm = (google.maps.geometry.spherical.computeDistanceBetween(centerLoc, targetLoc) / 1000).toFixed(2);
+
+											if(distanceInkm <= radius){
+												searchMarkersByGmap.push(marker);
+											}
+										}
+
+										combineFilters(searchMarkersByFilters, searchMarkersByGmap);
+
+										if (place.geometry.viewport) {
+											// Only geocodes have viewport.
+											bounds.union(place.geometry.viewport);
+										} else {
+											bounds.extend(place.geometry.location);
+										}
+
+										map.fitBounds(bounds);
+										map.setZoom(11);
+										map.panBy(-150, 0);
+									});
+								});
           }
-
-          // For each place, get the icon, name and location.
-          var bounds = new google.maps.LatLngBounds();
-          places.forEach(function(place) {
-						for (var marker of markers) {
-							var targetLat = marker.getPosition().lat();
-							var targetLng = marker.getPosition().lng();
-							var centerLat = place.geometry.location.lat();
-							var centerLng = place.geometry.location.lng();
-
-							var targetLoc = new google.maps.LatLng(targetLat,targetLng);
-							var centerLoc = new google.maps.LatLng(centerLat, centerLng);
-
-							var radius = 20;
-							var distanceInkm = (google.maps.geometry.spherical.computeDistanceBetween(centerLoc, targetLoc) / 1000).toFixed(2);
-
-							if(distanceInkm <= radius){
-								searchMarkers.push(marker);
-							}
-						}
-
-						for (var searchMarker of searchMarkers) {
-							var result = document.createElement('p');
-							result.setAttribute("class", "result-label");
-							result.setAttribute("data-lat", searchMarker.getPosition().lat());
-							result.setAttribute("data-lng", searchMarker.getPosition().lng());
-							result.innerHTML = searchMarker.title;
-
-							var svg = document.createElement('svg');
-							svg.setAttribute("viewBox", "0 0 22 22");
-							svg.setAttribute("width", "100%");
-							svg.setAttribute("height", "100%");
-
-							var path = document.createElement('path');
-							path.setAttribute("d", "M11 2c-3.9 0-7 3.1-7 7 0 5.3 7 13 7 13 0 0 7-7.7 7-13 0-3.9-3.1-7-7-7Zm0 9.5c-1.4 0-2.5-1.1-2.5-2.5 0-1.4 1.1-2.5 2.5-2.5 1.4 0 2.5 1.1 2.5 2.5 0 1.4-1.1 2.5-2.5 2.5Z");
-							path.setAttribute("fill", searchMarker.icon.fillColor);
-
-							svg.appendChild(path);
-							result.appendChild(svg);
-							resultsWrapper.appendChild(result);
-						}
-
-            if (place.geometry.viewport) {
-              // Only geocodes have viewport.
-              bounds.union(place.geometry.viewport);
-            } else {
-              bounds.extend(place.geometry.location);
-            }
-          });
-
-          map.fitBounds(bounds);
-					map.setZoom(11);
-					map.panBy(-150, 0);
         });
 
 				(function(){
