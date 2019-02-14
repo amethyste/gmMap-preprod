@@ -53,6 +53,27 @@
 
 				setControlOptions('zoom',true,'DEFAULT','',null);
 
+			var findMarkers = function(place, radius) {
+				var markersFound = [];
+
+				for (var marker of markers) {
+					var targetLat = marker.getPosition().lat();
+					var targetLng = marker.getPosition().lng();
+					var centerLat = place.geometry.location.lat();
+					var centerLng = place.geometry.location.lng();
+
+					var targetLoc = new google.maps.LatLng(targetLat,targetLng);
+					var centerLoc = new google.maps.LatLng(centerLat, centerLng);
+
+					var distanceInkm = (google.maps.geometry.spherical.computeDistanceBetween(centerLoc, targetLoc) / 1000).toFixed(2);
+
+					if(distanceInkm <= radius){
+						markersFound.push(marker);
+					}
+				}
+
+				return markersFound;
+			}
 
 			 map = new google.maps.Map(document.getElementById('map'), opts);
 			 map.panBy(-155, 0);
@@ -97,23 +118,13 @@
 									var service = new google.maps.places.PlacesService(map);
 									service.getDetails(request, function(place, status){
 										var bounds = new google.maps.LatLngBounds();
+										var radiusList = [25, 50, 100];
+										var i = 0;
 
-										for (var marker of markers) {
-											var targetLat = marker.getPosition().lat();
-											var targetLng = marker.getPosition().lng();
-											var centerLat = place.geometry.location.lat();
-											var centerLng = place.geometry.location.lng();
-
-											var targetLoc = new google.maps.LatLng(targetLat,targetLng);
-											var centerLoc = new google.maps.LatLng(centerLat, centerLng);
-
-											var radius = 20;
-											var distanceInkm = (google.maps.geometry.spherical.computeDistanceBetween(centerLoc, targetLoc) / 1000).toFixed(2);
-
-											if(distanceInkm <= radius){
-												searchMarkersByGmap.push(marker);
-											}
-										}
+										do {
+											searchMarkersByGmap = findMarkers(place, radiusList[i]);
+											i++;
+										} while(searchMarkersByGmap.length === 0 && i < radiusList.length)
 
 										combineFilters(searchMarkersByFilters, searchMarkersByGmap);
 

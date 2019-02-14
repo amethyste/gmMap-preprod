@@ -184,7 +184,7 @@
         [id="results"] .result {
           background: #f7f7f7;
           padding: 15px;
-          margin: 10px 0;
+          margin: 0 0 10px 0;
           cursor: pointer;
         }
 
@@ -368,7 +368,8 @@
            }
 
            var numberResults = document.querySelector('.results-number');
-           numberResults.innerText = searchMarkers.length + " résultats";
+           var labelNumberResults = searchMarkers.length > 1 ? " résultats" : " résultat";
+           numberResults.innerText = searchMarkers.length + labelNumberResults;
 
            for (var searchMarker of searchMarkers) {
              var result = document.createElement('div');
