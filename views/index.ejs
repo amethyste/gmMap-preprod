@@ -186,6 +186,8 @@
           padding: 15px;
           margin: 0 0 10px 0;
           cursor: pointer;
+          display: flex;
+          align-items: center;
         }
 
         [id="results"] .circle {
@@ -193,9 +195,7 @@
           height: 10px;
           border-radius: 5px;
           display: inline-block;
-          margin-left: 5px;
-          position: relative;
-          top: 1px;
+          margin: 0 7px 0 5px;
         }
 
         [id="results"] .result-label {
@@ -391,7 +391,7 @@
              circle.setAttribute("class", "circle");
              circle.setAttribute("style", "background-color: " + searchMarker.icon.fillColor);
 
-             label.appendChild(circle);
+             result.appendChild(circle);
              result.appendChild(label);
              resultsWrapper.appendChild(result);
            }

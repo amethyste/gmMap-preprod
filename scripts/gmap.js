@@ -75,6 +75,30 @@
 				return markersFound;
 			}
 
+			var fillResults = function(place) {
+				var bounds = new google.maps.LatLngBounds();
+				var radiusList = [25, 50, 100];
+				var i = 0;
+
+				do {
+					searchMarkersByGmap = findMarkers(place, radiusList[i]);
+					i++;
+				} while(searchMarkersByGmap.length === 0 && i < radiusList.length)
+
+				combineFilters(searchMarkersByFilters, searchMarkersByGmap);
+
+				if (place.geometry.viewport) {
+					// Only geocodes have viewport.
+					bounds.union(place.geometry.viewport);
+				} else {
+					bounds.extend(place.geometry.location);
+				}
+
+				map.fitBounds(bounds);
+				map.setZoom(11);
+				map.panBy(-150, 0);
+			}
+
 			 map = new google.maps.Map(document.getElementById('map'), opts);
 			 map.panBy(-155, 0);
 
@@ -123,30 +147,12 @@
 
 									var service = new google.maps.places.PlacesService(map);
 									service.getDetails(request, function(place, status){
-										var bounds = new google.maps.LatLngBounds();
-										var radiusList = [25, 50, 100];
-										var i = 0;
-
-										do {
-											searchMarkersByGmap = findMarkers(place, radiusList[i]);
-											i++;
-										} while(searchMarkersByGmap.length === 0 && i < radiusList.length)
-
-										combineFilters(searchMarkersByFilters, searchMarkersByGmap);
-
-										if (place.geometry.viewport) {
-											// Only geocodes have viewport.
-											bounds.union(place.geometry.viewport);
-										} else {
-											bounds.extend(place.geometry.location);
-										}
-
-										map.fitBounds(bounds);
-										map.setZoom(11);
-										map.panBy(-150, 0);
+										fillResults(place);
 									});
 								});
-          }
+          } else {
+						fillResults(place);
+					}
         });
 
 				(function(){
@@ -1171,8 +1177,6 @@
 					};
 
 					var marker = new google.maps.Marker(markerOptions); markers.push(marker);
-
-
 
 					var infoWindow = new SnazzyInfoWindow({
 						marker: marker,
